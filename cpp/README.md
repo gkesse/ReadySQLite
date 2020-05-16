@@ -1,2 +1,2 @@
-# ReadyOpenCV
-Bibliothèque de focntions C++ pour la Vision par Ordinateur avec OpenCV modulaires et réutilisables multi-plateformes.
+# ReadySQLite
+Bibliothèque de fonctions C++ pour la gestion de base de données SQLite
