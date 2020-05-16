@@ -8,7 +8,7 @@
 //================================================
 typedef int (*GSQLITE_CB)(void*,int,char**,char**);
 //================================================
-typedef struct _sGHeader sGHeader;
+typedef struct _sGParams sGParams;
 //================================================
 class GSQLite {
 private:
@@ -20,6 +20,7 @@ public:
     void test(int argc, char** argv);
     void createSQLite(std::string sqliteId, std::string databaseFile, std::string queryFile);
     void querySQLite(std::string sqliteId);
+    void showSQLite(std::string sqliteId);
     void execSQLite(std::string sqliteId, std::string sqlQuery, GSQLITE_CB callback = 0, void* params = 0);
     void deleteSQLite(std::string sqliteId);
     
@@ -31,13 +32,7 @@ private:
     static GSQLite* m_instance;
     std::map<std::string, sqlite3*> m_sqliteMap;
     std::map<std::string, std::string> m_stringMap;
-    std::map<std::string, sGHeader*> m_headerMap;
-};
-//===============================================
-struct _sGHeader {
-    int flag;
-    int id;
-    int col;
+    std::map<std::string, sGParams*> m_paramsMap; 
 };
 //===============================================
 #endif
