@@ -1,32 +1,32 @@
-# Prerequisites
-*.d
+#================================================
+# Makefile
+#================================================
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+/**/bin/
+/**/build/
 
-# Precompiled Headers
-*.gch
-*.pch
+#================================================
+# Eclipse
+#================================================
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+/**/Release/
+/**/Debug/
+/**/.metadata/
+/**/.settings/
+/**/.project
+/**/.cproject
 
-# Fortran module files
-*.mod
-*.smod
+#================================================
+# Qt
+#================================================
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+/**/object_script.*
+/**/.qmake.stash
+/**/Makefile.Debug
+/**/Makefile.Release
 
-# Executables
-*.exe
-*.out
-*.app
+#================================================
+# Data
+#================================================
+
+/**/video/
