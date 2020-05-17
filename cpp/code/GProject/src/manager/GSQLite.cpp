@@ -2,6 +2,7 @@
 #include "GSQLite.h"
 #include "GFile.h"
 #include "GString.h"
+#include "GShell.h"
 #include "GDebug.h"
 //================================================
 #if defined(_GUSE_SQLITE_ON_)
@@ -36,9 +37,9 @@ void GSQLite::test(int argc, char** argv) {
     std::string lSqlite = "lSqlite";
     std::string lDatabaseFile = "data/sqlite/database.dat";
     std::string lQueryFile = "data/sqlite/query.sql";
-    createSQLite(lSqlite, lDatabaseFile, lQueryFile);
-    querySQLite(lSqlite); 
-    deleteSQLite(lSqlite);
+    GSQLite::Instance()->createSQLite(lSqlite, lDatabaseFile, lQueryFile);
+    GSQLite::Instance()->querySQLite(lSqlite); 
+    GSQLite::Instance()->deleteSQLite(lSqlite);
 }
 //===============================================
 void GSQLite::createSQLite(std::string sqliteId, std::string databaseFile, std::string queryFile) {
@@ -47,9 +48,23 @@ void GSQLite::createSQLite(std::string sqliteId, std::string databaseFile, std::
     sGParams* lParams = new sGParams;
     int lRes = sqlite3_open(databaseFile.c_str(), &lSqlite);
     if(lRes != SQLITE_OK){std::cout << sqlite3_errmsg(lSqlite) << "\n"; exit(0);}
+    funcSQLite(lSqlite, "md5", onMd5, 1);
     m_sqliteMap[sqliteId] = lSqlite;
     m_stringMap[sqliteId] = queryFile;
     m_paramsMap[sqliteId] = lParams;
+}
+//===============================================
+void GSQLite::execSQLite(std::string sqliteId, std::string sqlQuery, GSQLITE_EXEC callback, void* params) {
+    GDebug::Instance()->write(__CLASSNAME__, "::", __FUNCTION__, "()", _EOA_);
+    sqlite3* lSqlite = m_sqliteMap[sqliteId];
+    char* lError;
+    int lRes = sqlite3_exec(lSqlite, sqlQuery.c_str(), callback, params, &lError);
+    if(lRes != SQLITE_OK){std::cout << lError << "\n"; sqlite3_free(lError); exit(0);}
+}
+//===============================================
+void GSQLite::funcSQLite(sqlite3* sqliteDb, std::string funcName, GSQLITE_FUNC funcPtr, int argc) {
+    GDebug::Instance()->write(__CLASSNAME__, "::", __FUNCTION__, "()", _EOA_);
+    sqlite3_create_function(sqliteDb, funcName.c_str(), argc, SQLITE_UTF8, NULL, funcPtr, NULL, NULL);
 }
 //===============================================
 void GSQLite::querySQLite(std::string sqliteId) {
@@ -63,7 +78,6 @@ void GSQLite::querySQLite(std::string sqliteId) {
     std::string lSqlQuery = GFile::Instance()->getData(sqliteId);
     GFile::Instance()->deleteIfstream(sqliteId);
     execSQLite(sqliteId, lSqlQuery, onCallbackSQLite, lParams);
-    std::cout << "ooooooooo\n";
     showSQLite(sqliteId);
 }
 //===============================================
@@ -78,13 +92,13 @@ void GSQLite::showSQLite(std::string sqliteId) {
         if(i == 0) {printf("%*s", -lParams->id, lValue.c_str());}
         else {printf("%*s", -lParams->col, lValue.c_str());}
     }
-    printf("|\n");
+    if(lSize != 0) {printf("|\n");}
     for(int i = 0; i < lSize; i++) {
         printf("|");
         if(i == 0) {for(int i = 0; i < lParams->id; i++) {printf("-");}}
         else {for(int i = 0; i < lParams->col; i++) {printf("-");}}
     }
-    printf("|\n");    
+    if(lSize != 0) {printf("|\n");}
     int lRows = lParams->datas.size();
     for(int j = 0; j < lRows; j++) {
         std::vector<std::string> lValueMap = lParams->datas.at(j);
@@ -96,14 +110,6 @@ void GSQLite::showSQLite(std::string sqliteId) {
         }
         printf("|\n");
     }
-}
-//===============================================
-void GSQLite::execSQLite(std::string sqliteId, std::string sqlQuery, GSQLITE_CB callback, void* params) {
-    GDebug::Instance()->write(__CLASSNAME__, "::", __FUNCTION__, "()", _EOA_);
-    sqlite3* lSqlite = m_sqliteMap[sqliteId];
-    char* lError;
-    int lRes = sqlite3_exec(lSqlite, sqlQuery.c_str(), callback, params, &lError);
-    if(lRes != SQLITE_OK){std::cout << lError << "\n"; sqlite3_free(lError); exit(0);}
 }
 //===============================================
 void GSQLite::deleteSQLite(std::string sqliteId) {
@@ -133,6 +139,18 @@ int GSQLite::onCallbackSQLite(void* params, int argc, char** argv, char** cols) 
     }
     lParams->datas.push_back(lValueMap);
     return 0;
+}
+//===============================================
+void GSQLite::onMd5(sqlite3_context* context, int argc, sqlite3_value **argv) {
+    GDebug::Instance()->write("GSQLite", "::", __FUNCTION__, "()", _EOA_);    
+    if(argc == 1) {
+        std::string lText = (char*)sqlite3_value_text(argv[0]);
+        char lCommand[256];
+        char lOuput[256];
+        sprintf(lCommand, "echo %s | md5sum | awk '{print $1}'", lText.c_str());
+        GShell::Instance()->run(lCommand, lOuput, 255, 1);
+        sqlite3_result_text(context, lOuput, -1, SQLITE_TRANSIENT);
+    }
 }
 //===============================================
 #endif

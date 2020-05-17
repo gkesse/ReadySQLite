@@ -47,7 +47,7 @@ void GShell::testUnix(int argc, char** argv) {
     char lOuput[256];
 
     sprintf(lCommand, "%s", "echo $HOME");
-    run(lCommand, lOuput, 255, 1);
+    GShell::Instance()->run(lCommand, lOuput, 255, 1);
     std::cout << lOuput << "\n";
 }
 #endif

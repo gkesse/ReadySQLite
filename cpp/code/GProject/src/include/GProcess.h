@@ -13,6 +13,7 @@ public:
     static GProcess* Instance();
     void process(int argc, char** argv);
     void test(int argc, char** argv);
+    void query(int argc, char** argv);
 
 private:
     void help(int argc, char** argv);
